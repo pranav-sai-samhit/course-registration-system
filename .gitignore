@@ -21,3 +21,5 @@ Thumbs.db
 # Build files
 build/
 dist/
+# Database backups
+*.backup

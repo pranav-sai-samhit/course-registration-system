@@ -25,7 +25,8 @@ def get_db_connection():
         dbname=os.getenv("DB_NAME", "CourseRegistrationDB"),
         user=os.getenv("DB_USER", "postgres"),
         password=os.getenv("DB_PASSWORD", ""),
-        connect_timeout=int(os.getenv("DB_CONNECT_TIMEOUT", "5")),
+        connect_timeout=int(os.getenv("DB_CONNECT_TIMEOUT", "10")),
+        sslmode=os.getenv("DB_SSLMODE", "require"),
     )
 
 
