@@ -1,0 +1,120 @@
+{% extends "portal_page.html" %}
+{% block page_content %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-semibold">Register a student for a course</div>
+  <div class="card-body">
+    <form method="post" class="needs-validation" novalidate action="{{ url_for('admin.registrations') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="create">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" for="r-student">Student <span class="text-danger">*</span></label>
+          <select class="form-select" id="r-student" name="student_id" required>
+            <option value="">Select...</option>
+            {% for s in students %}
+              <option value="{{ s.student_id }}" data-semester-id="{{ s.current_semester_id }}"
+                      {{ 'selected' if values.get('student_id')|string == s.student_id|string }}>
+                {{ s.name }} — {{ s.program_name }}, {{ s.department_name }}, Sem {{ s.semester_number }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="r-course">Course <span class="text-danger">*</span></label>
+          <select class="form-select" id="r-course" name="course_id" required>
+            <option value="">Select...</option>
+            {% for c in courses %}
+              <option value="{{ c.course_id }}" {{ 'selected' if values.get('course_id')|string == c.course_id|string }}>
+                {{ c.course_code }} — {{ c.course_name }} ({{ c.course_type|lower }}, {{ c.department_name }}, Sem {{ c.semester_number }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="r-semester">Registration semester <span class="text-danger">*</span></label>
+          <select class="form-select" id="r-semester" name="semester_id" required>
+            <option value="">Select...</option>
+            {% for s in semesters %}
+              <option value="{{ s.id }}" {{ 'selected' if values.get('semester_id')|string == s.id|string }}>{{ s.label }}</option>
+            {% endfor %}
+          </select>
+          <div class="form-text">Chosen automatically from the student's current semester.</div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">Register</button>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white">
+    <form method="get" class="row g-2 align-items-center">
+      <div class="col-auto fw-semibold">All registrations</div>
+      <div class="col-sm">
+        <select class="form-select form-select-sm" name="student_id" aria-label="Filter by student">
+          <option value="">All students</option>
+          {% for s in students %}<option value="{{ s.student_id }}" {{ 'selected' if student_filter == s.student_id|string }}>{{ s.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-sm">
+        <select class="form-select form-select-sm" name="status" aria-label="Filter by status">
+          <option value="">Any status</option>
+          {% for st in ['REGISTERED', 'COMPLETED', 'CANCELLED'] %}<option value="{{ st }}" {{ 'selected' if status_filter == st }}>{{ st|capitalize }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-auto"><button class="btn btn-sm btn-outline-primary" type="submit">Apply</button>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.registrations') }}">Reset</a></div>
+    </form>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light"><tr>
+        <th>ID</th><th>Student</th><th>Course</th><th>Type</th><th>Sem.</th><th>Date</th>
+        <th>Marks</th><th>Pass mark used</th><th>Result</th><th>Status</th><th>Attempt</th><th class="text-end">Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td>{{ r.registration_id }}</td>
+          <td>{{ r.student_name }}</td>
+          <td>{{ r.course_code }} — {{ r.course_name }}</td>
+          <td>{{ r.course_type|capitalize }}</td>
+          <td>{{ r.semester_number }}</td>
+          <td>{{ r.registration_date }}</td>
+          <td>{{ r.marks_obtained if r.marks_obtained is not none else '—' }}</td>
+          <td>{{ r.passing_mark_used if r.passing_mark_used is not none else '—' }}</td>
+          <td><span class="badge text-bg-{{ {'PASS': 'success', 'FAIL': 'danger'}.get(r.result, 'secondary') }}">{{ r.result }}</span></td>
+          <td>{{ r.registration_status|capitalize }}</td>
+          <td>{% if r.registration_status == 'CANCELLED' %}Cancelled{% elif r.attempt_rank == 1 %}Current{% else %}Previous{% endif %}</td>
+          <td class="text-end text-nowrap">
+            {% if r.registration_status != 'CANCELLED' %}
+              <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.registration_marks', registration_id=r.registration_id) }}">{{ 'Marks' if r.result == 'PENDING' else 'Correct marks' }}</a>
+            {% endif %}
+            {% if r.registration_status == 'REGISTERED' and r.result == 'PENDING' %}
+              <form method="post" class="d-inline" action="{{ url_for('admin.registrations') }}"
+                    data-confirm="Cancel this registration? It will stay in the history.">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="cancel">
+                <input type="hidden" name="registration_id" value="{{ r.registration_id }}">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Cancel</button>
+              </form>
+            {% elif r.registration_status == 'CANCELLED' %}
+              <form method="post" class="d-inline" action="{{ url_for('admin.registrations') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="action" value="restore">
+                <input type="hidden" name="registration_id" value="{{ r.registration_id }}">
+                <button class="btn btn-sm btn-outline-primary" type="submit">Restore</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="12" class="text-center text-muted py-4">No registrations match.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="small text-muted mt-3">Every attempt is kept: a reattempt of a failed course is a new row, and earlier attempts, marks and results are never overwritten.</p>
+<script src="{{ url_for('static', filename='js/admin_registrations.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "portal_page.html" %}
+{% block page_content %}
+<div class="card shadow-sm">
+  <div class="d-flex p-2 border-bottom"><input type="search" class="form-control form-control-sm table-filter" placeholder="Filter this list" data-table-filter="#students-table" aria-label="Filter"></div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0" id="students-table">
+      <thead class="table-light"><tr><th>Student</th><th>Email</th><th>Course</th><th>Sem.</th><th>Attempt</th><th>Status</th><th>Result</th></tr></thead>
+      <tbody>
+      {% for r in registrations %}
+        <tr>
+          <td>{{ r.student_name }}</td><td>{{ r.student_email }}</td><td>{{ r.course_code }} — {{ r.course_name }}</td>
+          <td>{{ r.semester_number }}</td>
+          <td>{% if r.attempt_rank == 1 %}<span class="badge text-bg-primary">Current</span>{% else %}<span class="badge text-bg-secondary">Previous</span>{% endif %}</td>
+          <td>{{ r.registration_status|capitalize }}</td>
+          <td><span class="badge text-bg-{{ {'PASS': 'success', 'FAIL': 'danger'}.get(r.result, 'secondary') }}">{{ r.result }}</span></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No students are assigned to you yet. Contact the administrator.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="small text-muted mt-3">You see only the registrations assigned to you. Student details and registrations are managed by the administrator.</p>
+{% endblock %}

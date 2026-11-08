@@ -1,0 +1,8 @@
+.app-navbar { background: #1f3a5f; }
+.portal-card { transition: box-shadow .15s ease, transform .15s ease; }
+.portal-card:hover { box-shadow: 0 .5rem 1rem rgba(0,0,0,.12); transform: translateY(-2px); }
+.nav-card { transition: box-shadow .15s ease, transform .15s ease; border-left: 4px solid #1f3a5f; }
+.nav-card:hover { box-shadow: 0 .5rem 1rem rgba(0,0,0,.12); transform: translateY(-2px); }
+.sidebar-heading { font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: #6c757d; margin: 1rem 0 .4rem; }
+.portal-sidebar > a.list-group-item { border: 1px solid rgba(0,0,0,.125); border-radius: .375rem; margin-bottom: .5rem; }
+.table-filter { max-width: 16rem; }

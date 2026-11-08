@@ -1,0 +1,48 @@
+{% extends "portal_page.html" %}
+{% block page_content %}
+<div class="alert alert-info py-2">
+  You are in <strong>semester {{ semester_number }}</strong>. Electives chosen this semester:
+  <strong>{{ elective_count }} of {{ max_electives }}</strong>.
+</div>
+{% macro table(rows) %}
+<div class="table-responsive">
+  <table class="table table-hover align-middle mb-0">
+    <thead class="table-light"><tr><th>Code</th><th>Course</th><th>Type</th><th>Status</th><th class="text-end">Action</th></tr></thead>
+    <tbody>
+    {% for o in rows %}
+      <tr>
+        <td>{{ o.course_code }}</td><td>{{ o.course_name }}</td>
+        <td>{{ o.course_type|capitalize }}</td>
+        <td>{% if o.kind == 'REATTEMPT' %}<span class="badge text-bg-warning">Reattempt</span>{% else %}<span class="badge text-bg-primary">New</span>{% endif %}</td>
+        <td class="text-end">
+          {% if o.blocked %}
+            <span class="text-muted small">{{ o.blocked }}</span>
+          {% else %}
+            <form method="post" class="d-inline" action="{{ url_for('student.register_course') }}"
+                  data-confirm="Register for {{ o.course_code }} in semester {{ semester_number }}?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="course_id" value="{{ o.course_id }}">
+              <button class="btn btn-sm btn-primary" type="submit">Register</button>
+            </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endmacro %}
+{% set new_courses = options|selectattr('kind', 'equalto', 'NEW')|list %}
+{% set retry = options|selectattr('kind', 'equalto', 'REATTEMPT')|list %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-semibold">Courses offered this semester</div>
+  {% if new_courses %}{{ table(new_courses) }}
+  {% else %}<div class="card-body text-muted text-center">No new courses are available to you right now.</div>{% endif %}
+</div>
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-semibold">Failed courses you can reattempt</div>
+  {% if retry %}{{ table(retry) }}
+  {% else %}<div class="card-body text-muted text-center">You have no failed courses open for reattempt.</div>{% endif %}
+</div>
+<p class="small text-muted mt-3">Registration is always for your current semester. Courses you have passed, or that are still awaiting a result, are not listed. A reattempt creates a new attempt; earlier attempts stay in your history.</p>
+{% endblock %}

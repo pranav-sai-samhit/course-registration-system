@@ -1,0 +1,23 @@
+{% extends "portal_page.html" %}
+{% block page_content %}
+<div class="row g-4">
+  <section class="col-md-6">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="h5">Course-level faculty assignment</h2>
+        <p class="text-muted">Choose program, department, academic year, semester and course, then assign one or more faculty members to teach it.</p>
+        <a class="btn btn-primary" href="{{ url_for('admin.faculty_assignments_course') }}">Open course-level assignment</a>
+      </div>
+    </div>
+  </section>
+  <section class="col-md-6">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <h2 class="h5">Student-level faculty assignment</h2>
+        <p class="text-muted">Choose a student and one of their registered courses, then assign the faculty (already teaching that course) who will grade that registration.</p>
+        <a class="btn btn-primary" href="{{ url_for('admin.faculty_assignments_student') }}">Open student-level assignment</a>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

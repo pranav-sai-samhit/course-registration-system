@@ -1,0 +1,21 @@
+{% extends "portal_page.html" %}
+{% block page_content %}
+{% if student %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <dl class="row mb-0">
+      <dt class="col-sm-4">Student ID</dt><dd class="col-sm-8">{{ student.student_id }}</dd>
+      <dt class="col-sm-4">Name</dt><dd class="col-sm-8">{{ student.name }}</dd>
+      <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ student.email }}</dd>
+      <dt class="col-sm-4">Program</dt><dd class="col-sm-8">{{ student.program_name }} <span class="text-muted">({{ student.program_type }})</span></dd>
+      <dt class="col-sm-4">Department</dt><dd class="col-sm-8">{{ student.department_name }}</dd>
+      <dt class="col-sm-4">Current semester</dt><dd class="col-sm-8">Semester {{ student.semester_number }}</dd>
+      <dt class="col-sm-4">Academic year</dt><dd class="col-sm-8">Year {{ student.academic_year }}</dd>
+    </dl>
+  </div>
+</div>
+<p class="small text-muted mt-3">To change any of these details, contact the administrator.</p>
+{% else %}
+<div class="alert alert-warning">Your student record could not be found. Contact the administrator.</div>
+{% endif %}
+{% endblock %}

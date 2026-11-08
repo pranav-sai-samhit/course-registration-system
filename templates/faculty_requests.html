@@ -1,0 +1,52 @@
+{% extends "portal_page.html" %}
+{% block page_content %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-semibold">Propose a passing mark</div>
+  <div class="card-body">
+    <form method="post" class="row g-3 needs-validation" novalidate action="{{ url_for('faculty.propose_mark') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="col-md-6">
+        <label class="form-label" for="p-course">Course</label>
+        <select class="form-select" id="p-course" name="course_id" required>
+          <option value="">Select...</option>
+          {% for c in courses %}<option value="{{ c.course_id }}" {{ 'selected' if values.get('course_id')|string == c.course_id|string }}>{{ c.course_code }} — {{ c.course_name }} (official: {{ c.passing_mark if c.passing_mark is not none else 'not set' }})</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="p-mark">Proposed mark (0–100)</label>
+        <input class="form-control" id="p-mark" name="passing_mark" type="number" step="0.01" min="0" max="100" required value="{{ values.get('passing_mark', '') }}">
+      </div>
+      <div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary" type="submit">Submit proposal</button></div>
+    </form>
+    <p class="small text-muted mt-2 mb-0">Only the administrator can approve a proposal and change the official passing mark.</p>
+  </div>
+</div>
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-semibold">My proposals</div>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead class="table-light"><tr><th>Course</th><th>Proposed</th><th>Official now</th><th>Status</th><th>Decision date</th><th style="min-width:15rem">Edit</th></tr></thead>
+      <tbody>
+      {% for r in proposals %}
+        <tr>
+          <td>{{ r.course_code }} — {{ r.course_name }}</td><td>{{ r.proposed_passing_mark }}</td>
+          <td>{{ r.official_mark if r.official_mark is not none else 'Not set' }}</td>
+          <td><span class="badge text-bg-{{ {'APPROVED': 'success', 'REJECTED': 'danger'}.get(r.admin_status, 'warning') }}">{{ 'Pending' if r.admin_status == 'PENDING' else r.admin_status|capitalize }}</span></td>
+          <td>{{ r.approval_date or '—' }}</td>
+          <td>
+            {% if r.admin_status == 'PENDING' %}
+            <form method="post" class="d-flex gap-2" action="{{ url_for('faculty.edit_proposal', approval_id=r.approval_id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input class="form-control form-control-sm" name="passing_mark" type="number" step="0.01" min="0" max="100" required value="{{ r.proposed_passing_mark }}" aria-label="New proposed mark">
+              <button class="btn btn-sm btn-outline-primary" type="submit">Update</button>
+            </form>{% else %}<span class="text-muted">—</span>{% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="6" class="text-center text-muted py-4">You have not proposed any passing mark yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

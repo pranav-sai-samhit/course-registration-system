@@ -1,0 +1,77 @@
+{% extends "portal_page.html" %}
+{% block page_content %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-semibold">
+    {% if edit_id %}Edit {{ cfg.singular|lower }} #{{ edit_id }}{% else %}Add {{ cfg.singular|lower }}{% endif %}
+  </div>
+  <div class="card-body">
+    <form method="post" class="needs-validation" novalidate
+          action="{{ url_for('admin.' ~ key ~ '_edit', record_id=edit_id) if edit_id else url_for('admin.' ~ key) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="row g-3">
+        {% for f in fields %}
+        {% set locked = edit_id and f.create_only %}
+        <div class="col-md-6">
+          <label class="form-label" for="f-{{ f.name }}">{{ f.label }}{% if f.required %} <span class="text-danger">*</span>{% endif %}</label>
+          {% if f.type in ('select', 'select_static') %}
+            <select class="form-select" id="f-{{ f.name }}" name="{{ f.name }}" {{ 'required' if f.required }}>
+              <option value="">Select...</option>
+              {% for value, label in f.choices %}
+                <option value="{{ value }}" {{ 'selected' if values.get(f.name)|string == value|string }}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          {% else %}
+            <input class="form-control" id="f-{{ f.name }}" name="{{ f.name }}"
+                   type="{{ f.type }}" {{ 'required' if f.required }} {{ 'disabled' if locked }}
+                   {% if f.maxlength %}maxlength="{{ f.maxlength }}"{% endif %}
+                   {% if f.min is defined %}min="{{ f.min }}"{% endif %}
+                   {% if f.max is defined %}max="{{ f.max }}"{% endif %}
+                   {% if f.step %}step="{{ f.step }}"{% endif %}
+                   {% if f.type == 'password' %}autocomplete="new-password" minlength="8"{% else %}value="{{ values.get(f.name, '') }}"{% endif %}>
+          {% endif %}
+          {% if f.help %}<div class="form-text">{% if locked %}Changed on the Passing Mark Approvals page so every change is recorded.{% else %}{{ f.help }}{% endif %}</div>{% endif %}
+          <div class="invalid-feedback">Please provide a valid {{ f.label|lower }}.</div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">{{ 'Save changes' if edit_id else 'Add ' ~ cfg.singular|lower }}</button>
+        {% if edit_id %}<a class="btn btn-outline-secondary" href="{{ url_for('admin.' ~ key) }}">Cancel</a>{% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <span class="fw-semibold">All {{ cfg.title|lower }}</span>
+    <input type="search" class="form-control form-control-sm table-filter" placeholder="Filter this list..."
+           data-table-filter="#module-table" aria-label="Filter {{ cfg.title|lower }}">
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0" id="module-table">
+      <thead class="table-light"><tr>
+        {% for h in cfg.headers %}<th scope="col">{{ h }}</th>{% endfor %}
+        <th scope="col" class="text-end">Actions</th>
+      </tr></thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          {% for c in cfg.columns %}<td>{{ r[c] if r[c] is not none else '—' }}</td>{% endfor %}
+          <td class="text-end text-nowrap">
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.' ~ key ~ '_edit', record_id=r[cfg.pk]) }}">Edit</a>
+            <form method="post" class="d-inline" action="{{ url_for('admin.' ~ key ~ '_delete', record_id=r[cfg.pk]) }}"
+                  data-confirm="Delete this {{ cfg.singular|lower }}? This cannot be undone.">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="{{ cfg.columns|length + 1 }}" class="text-center text-muted py-4">No {{ cfg.title|lower }} have been added yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

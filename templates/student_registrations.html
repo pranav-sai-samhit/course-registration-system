@@ -1,0 +1,28 @@
+{% extends "portal_page.html" %}
+{% block page_content %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light"><tr>
+        <th>Code</th><th>Course</th><th>Type</th><th>Semester</th><th>Registered on</th><th>Attempt</th><th>Status</th><th>Result</th>
+      </tr></thead>
+      <tbody>
+      {% for a in attempts %}
+        <tr>
+          <td>{{ a.course_code }}</td><td>{{ a.course_name }}</td><td>{{ a.course_type|capitalize }}</td>
+          <td>Semester {{ a.semester_number }} (Year {{ a.academic_year }})</td>
+          <td>{{ a.registration_date }}</td>
+          <td>{% if a.registration_status == 'CANCELLED' %}Cancelled
+              {% else %}#{{ a.attempt_number }} {% if a.attempt_rank == 1 %}<span class="badge text-bg-primary">Current</span>{% else %}<span class="badge text-bg-secondary">Previous</span>{% endif %}{% endif %}</td>
+          <td>{{ a.registration_status|capitalize }}</td>
+          <td><span class="badge text-bg-{{ {'PASS': 'success', 'FAIL': 'danger'}.get(a.result, 'secondary') }}">{{ a.result }}</span></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">You have not registered for any course yet. Open Available Courses to register.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="small text-muted mt-3">Every attempt is listed. To cancel a registration, contact the administrator.</p>
+{% endblock %}

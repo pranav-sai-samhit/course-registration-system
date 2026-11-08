@@ -1,0 +1,73 @@
+{% extends "portal_page.html" %}
+{% block page_content %}
+{% macro status_badge(s) %}<span class="badge text-bg-{{ {'APPROVED': 'success', 'REJECTED': 'danger'}.get(s, 'warning') }}">{{ s|capitalize }}</span>{% endmacro %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-semibold">Change an official passing mark directly</div>
+  <div class="card-body">
+    <form method="post" class="row g-3 needs-validation" novalidate action="{{ url_for('admin.passing_mark_set') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="col-md-6">
+        <label class="form-label" for="s-course">Course</label>
+        <select class="form-select" id="s-course" name="course_id" required>
+          <option value="">Select...</option>
+          {% for c in courses %}<option value="{{ c.course_id }}" {{ 'selected' if values.get('course_id')|string == c.course_id|string }}>{{ c.course_code }} — {{ c.course_name }} (current: {{ c.passing_mark if c.passing_mark is not none else 'not set' }})</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="s-mark">New passing mark (0–100)</label>
+        <input class="form-control" id="s-mark" name="passing_mark" type="number" step="0.01" min="0" max="100" required value="{{ values.get('passing_mark', '') }}">
+      </div>
+      <div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary" type="submit">Set passing mark</button></div>
+    </form>
+    <p class="small text-muted mt-2 mb-0">The change is recorded below as an admin-initiated entry. Results already saved keep the passing mark used at that time.</p>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-semibold">Pending proposals</div>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead class="table-light"><tr><th>Course</th><th>Faculty</th><th>Current mark</th><th>Proposed</th><th class="text-end">Decision</th></tr></thead>
+      <tbody>
+      {% for r in pending %}
+        <tr>
+          <td>{{ r.course_code }} — {{ r.course_name }}</td><td>{{ r.faculty_name or '—' }}</td>
+          <td>{{ r.official_mark if r.official_mark is not none else 'Not set' }}</td><td>{{ r.proposed_passing_mark }}</td>
+          <td class="text-end text-nowrap">
+            <form method="post" class="d-inline" data-confirm="Approve {{ r.proposed_passing_mark }} as the official passing mark for {{ r.course_code }}?"
+                  action="{{ url_for('admin.approval_decide', approval_id=r.approval_id, action='approve') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-success" type="submit">Approve</button></form>
+            <form method="post" class="d-inline" data-confirm="Reject this proposal?"
+                  action="{{ url_for('admin.approval_decide', approval_id=r.approval_id, action='reject') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-danger" type="submit">Reject</button></form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="text-center text-muted py-4">No proposals are waiting for a decision.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-semibold">History</div>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead class="table-light"><tr><th>#</th><th>Course</th><th>Mark</th><th>Origin</th><th>Faculty status</th><th>Admin status</th><th>Decided by</th><th>Date</th></tr></thead>
+      <tbody>
+      {% for r in history %}
+        <tr>
+          <td>{{ r.approval_id }}</td><td>{{ r.course_code }}</td><td>{{ r.proposed_passing_mark }}</td>
+          <td>{% if r.faculty_id %}Proposed by {{ r.faculty_name }}{% else %}Set by admin{% endif %}</td>
+          <td>{% if r.faculty_id %}{{ status_badge(r.faculty_status) }}{% else %}—{% endif %}</td>
+          <td>{{ status_badge(r.admin_status) }}</td><td>{{ r.admin_name or '—' }}</td><td>{{ r.approval_date or '—' }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">No history yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

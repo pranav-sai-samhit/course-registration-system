@@ -1,0 +1,24 @@
+{% extends "portal_page.html" %}
+{% block page_content %}
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light"><tr><th>Code</th><th>Course</th><th>Type</th><th>Program / Department</th><th>Year / Sem.</th><th>Official passing mark</th><th>Students assigned to me</th></tr></thead>
+      <tbody>
+      {% for c in courses %}
+        <tr>
+          <td>{{ c.course_code }}</td><td>{{ c.course_name }}</td><td>{{ c.course_type|capitalize }}</td>
+          <td>{{ c.program_name }} / {{ c.department_name }}</td>
+          <td>Year {{ c.academic_year_number }} / Sem {{ c.semester_number }}</td>
+          <td>{% if c.passing_mark is not none %}{{ c.passing_mark }}{% else %}<span class="badge text-bg-warning">Not set</span>{% endif %}</td>
+          <td>{{ c.student_count }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No courses are assigned to you yet. Contact the administrator.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<p class="small text-muted mt-3">Where a passing mark is not set, propose one under Passing Mark Requests before entering marks.</p>
+{% endblock %}

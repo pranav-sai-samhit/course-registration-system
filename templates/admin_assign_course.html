@@ -1,0 +1,87 @@
+{% extends "portal_page.html" %}
+{% block page_content %}
+<p><a href="{{ url_for('admin.faculty_assignments') }}">&larr; Faculty Assignments</a></p>
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white fw-semibold">Course-level faculty assignment</div>
+  <div class="card-body">
+    <form method="post" class="needs-validation" novalidate id="assign-course-form" action="{{ url_for('admin.faculty_assignments_course') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" for="a-program">Program <span class="text-danger">*</span></label>
+          <select class="form-select" id="a-program" name="program_id" required>
+            <option value="">Select...</option>
+            {% for p in programs %}<option value="{{ p.program_id }}" {{ 'selected' if values.get('program_id')|string == p.program_id|string }}>{{ p.program_name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="a-department">Department <span class="text-danger">*</span></label>
+          <select class="form-select" id="a-department" name="department_id" required>
+            <option value="">Select...</option>
+            {% for d in departments %}<option value="{{ d.department_id }}" data-program="{{ d.program_id }}" {{ 'selected' if values.get('department_id')|string == d.department_id|string }}>{{ d.department_name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="a-year">Academic year <span class="text-danger">*</span></label>
+          <select class="form-select" id="a-year" name="academic_year" required>
+            <option value="">Select...</option>
+            {% for program_id, year in years %}<option value="{{ year }}" data-program="{{ program_id }}" {{ 'selected' if values.get('academic_year')|string == year|string }}>Year {{ year }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="a-semester">Semester <span class="text-danger">*</span></label>
+          <select class="form-select" id="a-semester" name="semester_id" required>
+            <option value="">Select...</option>
+            {% for s in semesters %}<option value="{{ s.semester_id }}" data-program="{{ s.program_id }}" data-year="{{ s.academic_year_number }}" {{ 'selected' if values.get('semester_id')|string == s.semester_id|string }}>Semester {{ s.semester_number }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label" for="a-course">Course <span class="text-danger">*</span></label>
+          <select class="form-select" id="a-course" name="course_id" required>
+            <option value="">Select...</option>
+            {% for c in courses %}<option value="{{ c.course_id }}" data-program="{{ c.program_id }}" data-department="{{ c.department_id }}" data-semester="{{ c.semester_id }}" {{ 'selected' if values.get('course_id')|string == c.course_id|string }}>{{ c.course_code }} — {{ c.course_name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <span class="form-label d-block">Faculty <span class="text-danger">*</span> <span class="text-muted small">(select one or more)</span></span>
+          {% for f in faculty %}
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" name="faculty_ids" id="f-{{ f.faculty_id }}" value="{{ f.faculty_id }}" {{ 'checked' if f.faculty_id|string in selected_faculty }}>
+            <label class="form-check-label" for="f-{{ f.faculty_id }}">{{ f.name }}</label>
+          </div>
+          {% else %}<p class="text-muted mb-0">No faculty accounts exist yet. Add faculty first.</p>{% endfor %}
+        </div>
+      </div>
+      <button class="btn btn-primary mt-3" type="submit">Assign faculty</button>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header bg-white fw-semibold">Current course-level assignments</div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light"><tr><th>Faculty</th><th>Program</th><th>Department</th><th>Year</th><th>Sem.</th><th>Course</th><th class="text-end">Action</th></tr></thead>
+      <tbody>
+      {% for a in assignments %}
+        <tr>
+          <td>{{ a.faculty_name }}</td><td>{{ a.program_name }}</td><td>{{ a.department_name }}</td>
+          <td>{{ a.academic_year_number }}</td><td>{{ a.semester_number }}</td><td>{{ a.course_code }} — {{ a.course_name }}</td>
+          <td class="text-end">
+            <form method="post" class="d-inline" data-confirm="Remove {{ a.faculty_name }} from {{ a.course_code }}?"
+                  action="{{ url_for('admin.faculty_assignment_remove', assignment_id=a.assignment_id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="level" value="course">
+              <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No course-level assignments yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/assign_course.js') }}"></script>
+{% endblock %}

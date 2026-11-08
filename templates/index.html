@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Sign in - Course Registration System{% endblock %}
+{% block content %}
+<div class="text-center mb-4">
+  <h1 class="h3">Welcome</h1>
+  <p class="text-muted">Choose how you want to sign in.</p>
+</div>
+<div class="row g-3 justify-content-center">
+  {% for role, label, text in [('admin','Administrator','Manage students, faculty, courses and approvals.'),('faculty','Faculty','Enter marks and propose passing marks.'),('student','Student','Register for courses and view results.')] %}
+  <div class="col-md-4">
+    <a class="card h-100 text-decoration-none portal-card" href="{{ url_for('auth.' ~ role ~ '_login') }}">
+      <div class="card-body">
+        <h2 class="h5 text-body">{{ label }}</h2>
+        <p class="text-muted mb-0">{{ text }}</p>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
