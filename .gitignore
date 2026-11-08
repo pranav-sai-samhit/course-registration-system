@@ -1,23 +1,25 @@
-# Environment variables
+@"
+# Environment secrets
 .env
 .env.*
 !.env.example
 
-# Python
-__pycache__/
-*.pyc
+# Python virtual environment
 venv/
 .venv/
 
-# React / Node
-node_modules/
-build/
-dist/
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
 
-# IDE
+# IDE and operating system
 .vscode/
 .idea/
-
-# OS
 .DS_Store
 Thumbs.db
+
+# Build files
+build/
+dist/
+"@ | Set-Content .gitignore
